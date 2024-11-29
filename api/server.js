@@ -64,6 +64,7 @@ app.post("/login", async (req, res) => {
       // หากไม่มี username ในฐานข้อมูล
       return res.status(404).json({ status: 0, message: "username ไม่ถูกต้อง" });
     }
+    console.log('row[0] = ', row[0]);
     const userFromDB = row[0]; // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
 
     // ตรวจสอบรหัสผ่าน (เปรียบเทียบ req.body.password กับข้อมูลในฐานข้อมูล)
@@ -87,6 +88,36 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Middleware สำหรับตรวจสอบ JWT Token
+function authenticateToken(req, res, next) {
+  const headerstoken = req.headers["authorization"]
+  const token = headerstoken.split(' ')[1];
+  //console.log('token = ', token.split(' ')[1])
+  if (!token) {
+    return res.status(403).json({ message: 'No token provided' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ 
+        message: 'Invalid token' ,
+        status:0
+      });
+    }
+    req.user = decoded;
+    next();
+  });
+}
+
+// Route ที่ต้องมีการยืนยันตัวตน (Protected Route)
+app.get('/checktoken', authenticateToken, (req, res) => {
+  res.json({
+    message: ` Welcome ${req.user.username} to the verify! ` ,
+    status:1
+  });
+  
+});
+
 app.post('/upload-single', upload.single('picture'), async (req, res) => {
   console.log('data =', req.file)
   try {
@@ -101,29 +132,6 @@ app.post('/upload-single', upload.single('picture'), async (req, res) => {
   } catch (e) {
     res.send({ status: 0, error: e.message });
   }
-});
-
-
-// Middleware สำหรับตรวจสอบ JWT Token
-function authenticateToken(req, res, next) {
-  const token = req.headers['authorization'];
-
-  if (!token) {
-    return res.status(403).json({ message: 'No token provided' });
-  }
-
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = decoded;
-    next();
-  });
-}
-
-// Route ที่ต้องมีการยืนยันตัวตน (Protected Route)
-app.get('/dashboard', authenticateToken, (req, res) => {
-  res.json({ message: ` Welcome ${req.user.username} to the dashboard! ` });
 });
 
 // // API อัพรูปลงฐานข้อมูลไฟล์เดียว

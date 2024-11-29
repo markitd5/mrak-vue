@@ -25,8 +25,8 @@
               <div class="check-app-text">CHECK APP</div>
             </div>
             <v-text-field
-              v-model="email"
-              label="Email or Phone"
+              v-model="username"
+              label="username or Phone"
               variant="outlined"
               color="white"
               bg-color="transparent"
@@ -63,8 +63,8 @@
           <div class="text-center mb-4">
             <router-link to="/forgot_pass" class="forgot-password-link">Forgot Password?</router-link>
           </div>
-          <v-btn color="#4c8479" @click="Login" rounded="pill" class="login-btn mb-4"  block size="x-large">
-            <span class="white--text" >Login</span>
+          <v-btn color="#4c8479" rounded="pill"  @click="Login"  class="login-btn mb-4"  block size="x-large">
+            <span class="white--text">Login</span>
           </v-btn>
           <div class="text-center mb-4">or</div>
           <v-btn color="#bed2d0" rounded="pill" class="create-account-btn mb-4" block size="x-large">
@@ -84,28 +84,66 @@
   </v-app>
 </template>
 
- 
-<script>
-// import { ref } from 'vue'
-import axios from "axios"
-export default {
-  data() {
-    return {
-      email: '',
-      password: ''
-    }
-  },
+<script setup>
+import { ref } from 'vue'
+import axios from 'axios'
+import {useRouter} from 'vue-router'
 
-methods: { 
- async Login(){
-    console.log('email=', this.email)
+const router = useRouter()
+
+
+const username = ref('')
+const password = ref('')
+const loginWithFacebook = () => {
+  console.log('Logging in with Facebook')
+  // Add your Facebook login logic here
+}
+const Login = async() => {
+console.log('username=', username.value)
     let forms = {
-      username: this.email,
-      password: this.password
+      username: username.value,
+      password: password.value
   }
    const response = await axios.post("http://localhost:7000/login", forms);
+   console.log('data=', response.data.token)
+   const token = response.data.token
+   console.log('token=', token)
+   localStorage.setItem("token",token)
+   if(response.data.status=== 1){
+    router.push('/list_datatables');
+   }
+  
+}
+
+const  doLogin = async () => {
+  console.log('email=', email.value)
+  console.log('password=', password.value)
+  console.log('doLogin')
+  const response = await fetch('http://localhost:7000/listStudent?username='+ email.value); // URL ของ API
+  // console.log('respore=', response)
+  const data = await response.json(); // แปลง response เป็น JSON
+  console.log('data=', data.datas)
+  this.items = data; // เก็บข้อมูลใน state
+}
+const  doLogin1 = async () => {
+  console.log('email=', email.value)
+  console.log('password=', password.value)
+  const student = {
+    email: email.value,
+    passwd: password.value
   }
-},
+  console.log('doLogin1')
+  const response = await axios.get('http://localhost:7000/listStudent',{
+      params: {
+        student
+      }
+    });
+  students = response.data.datas; // จัดเก็บข้อมูลใน ref
+
+}
+const loginWithGmail = () => {
+  console.log('Logging in with Gmail')
+  // Add your Gmail login logic here
 }
 </script>
 

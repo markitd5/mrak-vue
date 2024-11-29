@@ -42,13 +42,13 @@
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="4" sm="6">
-          <v-file-input
-            v-model="editedItem.picture"
-            label="รูปภาพ"
-            accept="image/*"
-            @change="onFileChange"
-          ></v-file-input>
-        </v-col>
+                    <v-file-input
+                      v-model="editedItem.picture"
+                      label="รูปภาพ"
+                      accept="image/*"
+                      @change="onFileChange"
+                    ></v-file-input>
+                  </v-col>
                   <v-col cols="12" md="4" sm="6"> </v-col>
                 </v-row>
               </v-container>
@@ -100,6 +100,10 @@
 </template>
   <script>
 import axios from "axios";
+import {useRouter} from 'vue-router'
+
+const router = useRouter()
+
 export default {
   data: () => ({
     dialog: false,
@@ -147,10 +151,29 @@ export default {
     },
   },
 
-  created() {
-    this.initialize();
-    this.listData();
+async mounted() {
+    const token = localStorage.getItem("token");
+    console.log("check  token from api  =  ", token); 
+    try {
+      const response = await axios.get("http://localhost:7000/checktoken", {          
+        headers: { 
+          Authorization: `Bearer ${token}`,    
+        },
+      })
+      console.log('data = ', response.data)
+    } catch (error) {
+      console.error("Error:", error.response.data);
+      alert('คุณต้อง login ก่อน');
+      this.$router.push('/login');
+      
+    }
   },
+
+      created() {
+      
+        this.initialize();
+        this.listData();
+      },
 
   methods: {
     initialize() {
@@ -171,10 +194,10 @@ export default {
     },
 
     async listData() {
-      const respones = await axios.get("http://localhost:7000/listStudent");
+      const respones = await axios.get("http://localhost:7000/");
       const datas = respones.data;
-      console.log(" datas = ", datas);
-      this.desserts = datas.datas;
+      // console.log(" datas = ", datas);
+      this.desserts = datas.datas;  
     },
 
     editItem(item) {
